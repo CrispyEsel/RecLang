@@ -1,4 +1,4 @@
-# RepLang
+# RecLang
 Mobile Project for Professor Xu and the UMD Department of Hearing and Speech Sciencess
 
 ## How to use
