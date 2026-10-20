@@ -2,7 +2,7 @@ import { IntelOneMono_400Regular, useFonts } from '@expo-google-fonts/intel-one-
 import { router, Stack } from 'expo-router';
 import { Pressable, StyleSheet, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { COLORS, FONT } from '@/constants/theme';
+import { COLORS, FONT } from '@/constants/reclang';
 
 function MenuButton({ label, onPress, big }: { label: string; onPress: () => void; big: boolean }) {
   let sizeStyle = styles.small;

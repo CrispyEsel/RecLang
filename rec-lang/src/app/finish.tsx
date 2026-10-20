@@ -1,7 +1,7 @@
 import { router, Stack, useLocalSearchParams } from 'expo-router';
 import { Pressable, StyleSheet, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { COLORS, FONT } from '@/constants/theme';
+import { COLORS, FONT } from '@/constants/reclang';
 
 export default function FinishScreen() {
   const { score, total } = useLocalSearchParams<{ score: string; total: string }>();
