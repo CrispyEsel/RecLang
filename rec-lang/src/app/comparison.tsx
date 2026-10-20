@@ -1,71 +1,96 @@
-import React from 'react';
+import { router, Stack } from 'expo-router';
+import { useState } from 'react';
+import { Pressable, StyleSheet, Text, View } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 
-export default function Comparison() {
-  // Common styles for the buttons to remove default HTML styling and match your layout
-  const buttonBaseStyle: React.CSSProperties = {
-    position: 'absolute',
-    background: '#7FBDFF',
-    color: 'white',
-    fontFamily: 'Intel One Mono',
-    fontWeight: '400',
-    border: 'none',
-    cursor: 'pointer',
-    display: 'flex',
-    alignItems: 'center',
-    justifyContent: 'center',
-  };
+const TOTAL_ROUNDS = 5;
+
+// Correct image (1 or 2) for each round. Placeholder until real images are added.
+const ANSWER_KEY = [1, 2, 1, 1, 2];
+
+const NO_CHOICE = 0;
+
+export default function ComparisonScreen() {
+  const [round, setRound] = useState(0);
+  const [score, setScore] = useState(0);
+  const [choice, setChoice] = useState(NO_CHOICE);
+
+  function handleNext() {
+    if (choice === NO_CHOICE) {
+      return;
+    }
+
+    let newScore = score;
+    if (choice === ANSWER_KEY[round]) {
+      newScore = score + 1;
+    }
+
+    const nextRound = round + 1;
+    if (nextRound >= TOTAL_ROUNDS) {
+      router.replace({
+        pathname: '/finish',
+        params: { score: String(newScore), total: String(TOTAL_ROUNDS) },
+      });
+      return;
+    }
+
+    setScore(newScore);
+    setRound(nextRound);
+    setChoice(NO_CHOICE);
+  }
 
   return (
-    <div style={{width: 768, height: 1024, position: 'relative', background: '#32313F', overflow: 'hidden'}}>
-      
-      {/* Next Button */}
-      <button
-        onClick={() => console.log('Next clicked')}
-        style={{
-          ...buttonBaseStyle,
-          width: 207,
-          height: 58,
-          left: 528,
-          top: 94,
-          borderRadius: '10px',
-          fontSize: 32,
-        }}
-      >
-        Next
-      </button>
+    <View style={styles.container}>
+      <Stack.Screen options={{ headerShown: false }} />
+      <SafeAreaView style={styles.safeArea}>
+        <View style={styles.topBar}>
+          <Text style={styles.roundText}>
+            {round + 1}/{TOTAL_ROUNDS}
+          </Text>
+          <Pressable
+            onPress={handleNext}
+            disabled={choice === NO_CHOICE}
+            style={({ pressed }) => [
+              styles.button,
+              styles.next,
+              pressed && styles.pressed,
+              choice === NO_CHOICE && styles.disabled,
+            ]}>
+            <Text style={[styles.buttonText, styles.nextText]}>Next</Text>
+          </Pressable>
+        </View>
 
-      {/* Image 1 Button */}
-      <button
-        onClick={() => console.log('Image 1 clicked')}
-        style={{
-          ...buttonBaseStyle,
-          width: 443,
-          height: 294,
-          left: 162,
-          top: 205,
-          borderRadius: '15px',
-          fontSize: 64,
-        }}
-      >
-        Image 1
-      </button>
+        <View style={styles.imageStack}>
+          <Pressable
+            onPress={() => setChoice(1)}
+            style={({ pressed }) => [styles.button, styles.image, pressed && styles.pressed, choice === 1 && styles.selected]}>
+            <Text style={[styles.buttonText, styles.imageText]}>Image 1</Text>
+          </Pressable>
 
-      {/* Image 2 Button */}
-      <button
-        onClick={() => console.log('Image 2 clicked')}
-        style={{
-          ...buttonBaseStyle,
-          width: 443,
-          height: 294,
-          left: 162,
-          top: 592,
-          borderRadius: '15px',
-          fontSize: 64,
-        }}
-      >
-        Image 2
-      </button>
-
-    </div>
+          <Pressable
+            onPress={() => setChoice(2)}
+            style={({ pressed }) => [styles.button, styles.image, pressed && styles.pressed, choice === 2 && styles.selected]}>
+            <Text style={[styles.buttonText, styles.imageText]}>Image 2</Text>
+          </Pressable>
+        </View>
+      </SafeAreaView>
+    </View>
   );
 }
+
+const styles = StyleSheet.create({
+  container: { flex: 1, backgroundColor: '#32313F' },
+  safeArea: { flex: 1, paddingHorizontal: 24, alignItems: 'center' },
+  topBar: { alignSelf: 'stretch', flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', paddingTop: 16 },
+  roundText: { color: 'white', fontFamily: 'IntelOneMono', fontSize: 32, lineHeight: 40 },
+  imageStack: { flex: 1, alignSelf: 'stretch', alignItems: 'center', justifyContent: 'center', gap: 93 },
+  button: { backgroundColor: '#7FBDFF', borderRadius: 10, alignItems: 'center', justifyContent: 'center' },
+  pressed: { backgroundColor: '#5FA4EE' },
+  selected: { backgroundColor: '#3D8FE0', borderWidth: 4, borderColor: 'white' },
+  disabled: { opacity: 0.4 },
+  buttonText: { color: 'white', fontFamily: 'IntelOneMono' },
+  next: { width: 207, height: 58 },
+  nextText: { fontSize: 32, lineHeight: 40 },
+  image: { width: '100%', maxWidth: 443, height: 294, borderRadius: 15 },
+  imageText: { fontSize: 64, lineHeight: 76 },
+});

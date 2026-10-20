@@ -1,61 +1,47 @@
-import React from 'react';
+import { router, Stack, useLocalSearchParams } from 'expo-router';
+import { Pressable, StyleSheet, Text, View } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 
-export default function Finish() {
+export default function FinishScreen() {
+  const { score, total } = useLocalSearchParams<{ score: string; total: string }>();
+
   return (
-    <div style={{width: 768, height: 1024, position: 'relative', background: '#32313F', overflow: 'hidden'}}>
-      
-      {/* Finished Title (Standard Text) */}
-      <div style={{left: 109, top: 224, position: 'absolute', color: 'white', fontSize: 104, fontFamily: 'Intel One Mono', fontWeight: '400', wordWrap: 'break-word'}}>
-        Finished!
-      </div>
+    <View style={styles.container}>
+      <Stack.Screen options={{ headerShown: false }} />
+      <SafeAreaView style={styles.safeArea}>
+        <View style={styles.heroSection}>
+          <Text style={styles.title} adjustsFontSizeToFit numberOfLines={1}>
+            Finished!
+          </Text>
+        </View>
 
-      {/* Accuracy Score Display (Standard Text Box) */}
-      <div 
-        style={{
-          width: 575, 
-          height: 121, 
-          left: 109, 
-          top: 580, 
-          position: 'absolute', 
-          background: '#77BBF9', 
-          borderRadius: 10,
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'center',
-          color: 'white', 
-          fontSize: 60, 
-          fontFamily: 'Intel One Mono', 
-          fontWeight: '400'
-        }}
-      >
-        Accuracy: 3/5
-      </div>
+        <View style={styles.bottomSection}>
+          <View style={[styles.box, styles.scoreBox]}>
+            <Text style={styles.boxText}>
+              Accuracy: {score}/{total}
+            </Text>
+          </View>
 
-      {/* Retake Button */}
-      <button
-        onClick={() => console.log('Retake clicked')}
-        style={{
-          position: 'absolute',
-          width: 575, 
-          height: 112.13, 
-          left: 109, 
-          top: 772, 
-          background: '#7FBDFF', 
-          borderRadius: 10,
-          border: 'none',
-          color: 'white', 
-          fontSize: 60, 
-          fontFamily: 'Intel One Mono', 
-          fontWeight: '400',
-          cursor: 'pointer',
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'center',
-        }}
-      >
-        Retake
-      </button>
-
-    </div>
+          <Pressable
+            onPress={() => router.replace('/')}
+            style={({ pressed }) => [styles.box, styles.retake, pressed && styles.pressed]}>
+            <Text style={styles.boxText}>Retake</Text>
+          </Pressable>
+        </View>
+      </SafeAreaView>
+    </View>
   );
 }
+
+const styles = StyleSheet.create({
+  container: { flex: 1, backgroundColor: '#32313F' },
+  safeArea: { flex: 1, paddingHorizontal: 24, alignItems: 'center' },
+  heroSection: { flex: 1, alignSelf: 'stretch', alignItems: 'center', justifyContent: 'center' },
+  title: { color: 'white', fontFamily: 'IntelOneMono', fontSize: 104, lineHeight: 120, textAlign: 'center' },
+  bottomSection: { alignSelf: 'stretch', alignItems: 'center', gap: 50, paddingBottom: 60 },
+  box: { width: '100%', maxWidth: 575, borderRadius: 10, alignItems: 'center', justifyContent: 'center' },
+  scoreBox: { height: 121, backgroundColor: '#77BBF9' },
+  retake: { height: 112, backgroundColor: '#7FBDFF' },
+  pressed: { backgroundColor: '#5FA4EE' },
+  boxText: { color: 'white', fontFamily: 'IntelOneMono', fontSize: 60, lineHeight: 72 },
+});
