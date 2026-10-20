@@ -1,6 +1,7 @@
 import { router, Stack, useLocalSearchParams } from 'expo-router';
 import { Pressable, StyleSheet, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import { COLORS, FONT } from '@/constants/theme';
 
 export default function FinishScreen() {
   const { score, total } = useLocalSearchParams<{ score: string; total: string }>();
@@ -34,14 +35,14 @@ export default function FinishScreen() {
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: '#32313F' },
+  container: { flex: 1, backgroundColor: COLORS.background },
   safeArea: { flex: 1, paddingHorizontal: 24, alignItems: 'center' },
   heroSection: { flex: 1, alignSelf: 'stretch', alignItems: 'center', justifyContent: 'center' },
-  title: { color: 'white', fontFamily: 'IntelOneMono', fontSize: 104, lineHeight: 120, textAlign: 'center' },
+  title: { color: COLORS.text, fontFamily: FONT, fontSize: 104, lineHeight: 120, textAlign: 'center' },
   bottomSection: { alignSelf: 'stretch', alignItems: 'center', gap: 50, paddingBottom: 60 },
   box: { width: '100%', maxWidth: 575, borderRadius: 10, alignItems: 'center', justifyContent: 'center' },
-  scoreBox: { height: 121, backgroundColor: '#77BBF9' },
-  retake: { height: 112, backgroundColor: '#7FBDFF' },
-  pressed: { backgroundColor: '#5FA4EE' },
-  boxText: { color: 'white', fontFamily: 'IntelOneMono', fontSize: 60, lineHeight: 72 },
+  scoreBox: { height: 121, backgroundColor: COLORS.scoreBox },
+  retake: { height: 112, backgroundColor: COLORS.button },
+  pressed: { backgroundColor: COLORS.buttonPressed },
+  boxText: { color: 'white', fontFamily: FONT, fontSize: 60, lineHeight: 72 },
 });

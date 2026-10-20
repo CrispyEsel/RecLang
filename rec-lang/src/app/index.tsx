@@ -2,6 +2,7 @@ import { IntelOneMono_400Regular, useFonts } from '@expo-google-fonts/intel-one-
 import { router, Stack } from 'expo-router';
 import { Pressable, StyleSheet, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import { COLORS, FONT } from '@/constants/theme';
 
 function MenuButton({ label, onPress, big }: { label: string; onPress: () => void; big: boolean }) {
   let sizeStyle = styles.small;
@@ -58,15 +59,15 @@ export default function StartScreen() {
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: '#32313F' },
+  container: { flex: 1, backgroundColor: COLORS.background },
   safeArea: { flex: 1, paddingHorizontal: 24, alignItems: 'center' },
   topBar: { alignSelf: 'stretch', alignItems: 'flex-end', paddingTop: 16 },
   heroSection: { flex: 1, alignSelf: 'stretch', alignItems: 'center', justifyContent: 'center' },
-  title: { color: 'white', fontFamily: 'IntelOneMono', fontSize: 104, lineHeight: 120, textAlign: 'center' },
+  title: { color: COLORS.text, fontFamily: FONT, fontSize: 104, lineHeight: 120, textAlign: 'center' },
   buttonStack: { alignSelf: 'stretch', alignItems: 'center', gap: 50, paddingBottom: 40 },
-  button: { backgroundColor: '#7FBDFF', borderRadius: 10, alignItems: 'center', justifyContent: 'center' },
-  pressed: { backgroundColor: '#5FA4EE' },
-  buttonText: { color: 'white', fontFamily: 'IntelOneMono' },
+  button: { backgroundColor: COLORS.button, borderRadius: 10, alignItems: 'center', justifyContent: 'center' },
+  pressed: { backgroundColor: COLORS.buttonPressed },
+  buttonText: { color: 'white', fontFamily: FONT, textAlign: 'center' },
   small: { width: 236, height: 77 },
   smallText: { fontSize: 40, lineHeight: 48 },
   large: { width: '100%', maxWidth: 488, height: 122 },

@@ -2,6 +2,7 @@ import { router, Stack } from 'expo-router';
 import { useState } from 'react';
 import { Pressable, StyleSheet, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import { COLORS, FONT } from '@/constants/theme';
 
 const TOTAL_ROUNDS = 5;
 
@@ -79,16 +80,16 @@ export default function ComparisonScreen() {
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: '#32313F' },
+  container: { flex: 1, backgroundColor: COLORS.background },
   safeArea: { flex: 1, paddingHorizontal: 24, alignItems: 'center' },
   topBar: { alignSelf: 'stretch', flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', paddingTop: 16 },
-  roundText: { color: 'white', fontFamily: 'IntelOneMono', fontSize: 32, lineHeight: 40 },
+  roundText: { color: COLORS.text, fontFamily: FONT, fontSize: 32, lineHeight: 40 },
   imageStack: { flex: 1, alignSelf: 'stretch', alignItems: 'center', justifyContent: 'center', gap: 93 },
-  button: { backgroundColor: '#7FBDFF', borderRadius: 10, alignItems: 'center', justifyContent: 'center' },
-  pressed: { backgroundColor: '#5FA4EE' },
-  selected: { backgroundColor: '#3D8FE0', borderWidth: 4, borderColor: 'white' },
+  button: { backgroundColor: COLORS.button, borderRadius: 10, alignItems: 'center', justifyContent: 'center' },
+  pressed: { backgroundColor: COLORS.buttonPressed },
+  selected: { backgroundColor: COLORS.buttonSelected, borderWidth: 4, borderColor: 'white' },
   disabled: { opacity: 0.4 },
-  buttonText: { color: 'white', fontFamily: 'IntelOneMono' },
+  buttonText: { color: 'white', fontFamily: FONT, textAlign: 'center' },
   next: { width: 207, height: 58 },
   nextText: { fontSize: 32, lineHeight: 40 },
   image: { width: '100%', maxWidth: 443, height: 294, borderRadius: 15 },
