@@ -1,4 +1,4 @@
-import { useFonts } from 'expo-font';
+import { IntelOneMono_400Regular, useFonts } from '@expo-google-fonts/intel-one-mono';
 import { router, Stack } from 'expo-router';
 import { Pressable, StyleSheet, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
@@ -22,7 +22,7 @@ function MenuButton({ label, onPress, big }: { label: string; onPress: () => voi
 
 export default function StartScreen() {
   const [fontLoaded] = useFonts({
-    IntelOneMono: require('../assets/fonts/IntelOneMono-Regular.ttf'),
+    IntelOneMono: IntelOneMono_400Regular,
   });
 
   if (!fontLoaded) {
