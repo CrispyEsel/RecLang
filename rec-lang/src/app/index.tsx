@@ -4,6 +4,7 @@ import { Pressable, StyleSheet, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { COLORS, FONT } from '@/constants/reclang';
 
+// This the menu button component on the Home Screen.  
 function MenuButton({ label, onPress, big }: { label: string; onPress: () => void; big: boolean }) {
   let sizeStyle = styles.small;
   let textStyle = styles.smallText;
@@ -21,6 +22,7 @@ function MenuButton({ label, onPress, big }: { label: string; onPress: () => voi
   );
 }
 
+// This is the home screen component. 
 export default function StartScreen() {
   const [fontLoaded] = useFonts({
     IntelOneMono: IntelOneMono_400Regular,
@@ -30,9 +32,22 @@ export default function StartScreen() {
     return null;
   }
 
-  function startTest() {
+  async function startTest() {
     router.replace('/comparison');
+    try {
+      const response = await fetch ("http://127.0.0.1:8000/", { method: "GET" }); // fetch POST response from local
+      if (!response.ok){ // error logging
+        console.log(response.ok)
+        throw new Error ("Could not reach backend...")
+      }
+      let data = await response.json() // otherwise, get the response in a JSON format. 
+      console.log(`Hello, World! I'm from the frontend. I want to say: ${data.message}!`)
+    }
+    catch (error){
+      console.error(`BACKEND ERROR: ${error}`)
+    }
   }
+
 
   return (
     <View style={styles.container}>

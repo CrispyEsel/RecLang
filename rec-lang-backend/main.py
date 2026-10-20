@@ -5,3 +5,11 @@ main.py file for RecLang backend. This backend is responsible for these followin
 mode of the language game, randomly choosing two images/cartoons/GIFs, calling ElevenLabs TTS for announcing the chosen word, 
 getting the button that the person presses, comparing it with the word announced, and storing the score. 
 """
+
+app = FastAPI()
+
+
+@app.get("/")
+async def say_hello():
+    print("Hello, World! I'm from FastAPI")
+    return {"message" : "Hello, World!"}

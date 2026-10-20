@@ -1,0 +1,1 @@
+make sure you run with "python main.py" instead of "python3 main.py"
