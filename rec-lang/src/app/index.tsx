@@ -33,9 +33,9 @@ export default function StartScreen() {
   }
 
   async function startTest() {
-    router.replace('/comparison');
+    // router.replace('/comparison');
     try {
-      const response = await fetch ("http://127.0.0.1:8000/", { method: "GET" }); // fetch POST response from local
+      const response = await fetch ("http://127.0.0.1:8000/", { method: "GET" }); // fetch GET response from local
       if (!response.ok){ // error logging
         console.log(response.ok)
         throw new Error ("Could not reach backend...")
