@@ -4,10 +4,17 @@ import { Pressable, StyleSheet, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { COLORS, FONT } from '@/constants/reclang';
 
-const TOTAL_ROUNDS = 5;
+const API_URL = 'http://127.0.0.1:8000';
 
 // Correct image (1 or 2) for each round. Placeholder until real images are added.
 const ANSWER_KEY = [1, 2, 1, 1, 2];
+
+type Round = {
+  id: number;
+  image_1: string;
+  image_2: string;
+  correct: number;
+};
 
 const NO_CHOICE = 0;
 
