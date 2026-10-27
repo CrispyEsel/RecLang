@@ -33,7 +33,7 @@ export default function StartScreen() {
   }
 
   async function startTest() {
-    // router.replace('/comparison');
+    router.replace('/comparison');
     try {
       const response = await fetch ("http://127.0.0.1:8000/", { method: "GET" }); // fetch GET response from local
       if (!response.ok){ // error logging
