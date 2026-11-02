@@ -102,6 +102,7 @@ def get_rounds(version: str):
             "correct": correct,
         })
     return rounds
+
 # Records results for finish.tsx
 @app.post("/sessions")
 def save_session(result: dict):

@@ -9,9 +9,13 @@ const NO_CHOICE = 0;
 
 type Round = {
   id: number;
-  image_1: string;
-  image_2: string;
-  correct: number;
+  version: string;
+  word: string;
+  category: string;
+  prompt: string;
+  left: string;
+  right: string;
+  correct: string; // this will be 'left' or 'right', decided on backend
 };
 
 export default function ComparisonScreen() {
