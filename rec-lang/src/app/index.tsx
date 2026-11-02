@@ -64,9 +64,9 @@ export default function StartScreen() {
         </View>
 
         <View style={styles.buttonStack}>
-            <MenuButton big label="Image Test" onPress={() => startTest('real')} />
-            <MenuButton big label="Animated Test" onPress={() => startTest('animated')} />
-            <MenuButton big label="Animated Text Test" onPress={() => startTest('animated_text')} />
+            <MenuButton big label="Image" onPress={() => startTest('real')} />
+            <MenuButton big label="Animated" onPress={() => startTest('animated')} />
+            <MenuButton big label="Animated + Text" onPress={() => startTest('animated_text')} />
         </View>
       </SafeAreaView>
     </View>
