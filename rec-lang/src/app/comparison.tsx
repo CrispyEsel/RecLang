@@ -1,5 +1,5 @@
-import { router, Stack } from 'expo-router';
-import { useEffect, useState } from 'react';
+import { router, Stack, useLocalSearchParams } from 'expo-router';
+import { useEffect, useRef, useState } from 'react';
 import { Image, Pressable, StyleSheet, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { COLORS, FONT } from '@/constants/reclang';
@@ -18,29 +18,57 @@ type Round = {
   correct: string; // this will be 'left' or 'right', decided on backend
 };
 
+type Phase = 'preview' | 'prompt' | 'response';
+type Status = 'loading' | 'ready' | 'empty' | 'error';
+type Answer = 'target' | 'distractor' | 'none';
+
+type TrialResult = {
+  trial_id: number;
+  word: string;
+  category: string;
+  target_side: string;
+  response: Answer;
+  reaction_ms: number | null;
+  replays: number;
+};
+
+
 export default function ComparisonScreen() {
+  const { version } = useLocalSearchParams<{ version: string }>();
   const [rounds, setRounds] = useState<Round[]>([]);
-  const [round, setRound] = useState(0);
-  const [score, setScore] = useState(0);
-  const [choice, setChoice] = useState(NO_CHOICE);
+  const [status, setStatus] = useState<Status>('loading');
+  const [trialIndex, setTrialIndex] = useState(0);
+  const [phase, setPhase] = useState<Phase>('preview');
+
+  const results = useRef<TrialResult[]>([]);
 
   // Get the list of rounds from the backend when the screen opens
   useEffect(() => {
     async function loadRounds() {
       try {
-        const response = await fetch(`${API_URL}/tests/image/rounds`, { method: 'GET' });
+      const response = await fetch(`${API_URL}/tests/${version}/rounds`, { method: 'GET' });
         if (!response.ok) {
           throw new Error('Could not load rounds');
         }
         const data = await response.json();
-        console.log('Rounds from backend:', data);
+        if (!Array.isArray(data)) {
+          throw new Error(`Backend said: ${JSON.stringify(data)}`);
+        }
+        if (data.length === 0) {
+          setStatus('empty');
+          return;
+        }
         setRounds(data);
+        setStatus('ready');
       } catch (error) {
         console.error(`BACKEND ERROR: ${error}`);
+        setStatus('error');
       }
     }
     loadRounds();
-  }, []);
+  }, [version]);
+
+  // EDITTED UP TO HERE, CODE BELOW WILL NOT WORK
 
   if (rounds.length === 0) {
     return (
