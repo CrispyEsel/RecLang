@@ -53,8 +53,8 @@ export default function ComparisonScreen() {
 
   const totalRounds = rounds.length;
   const current = rounds[round];
-  const imageUrl1 = `${API_URL}${current.image_1}`;
-  const imageUrl2 = `${API_URL}${current.image_2}`;
+  const imageUrl1 = `${API_URL}${current.left}`;
+  const imageUrl2 = `${API_URL}${current.right}`;
 
   function handleNext() {
     if (choice === NO_CHOICE) {
