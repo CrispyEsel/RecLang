@@ -17,7 +17,7 @@ function MenuButton({ label, onPress, big }: { label: string; onPress: () => voi
     <Pressable
       onPress={onPress}
       style={({ pressed }) => [styles.button, sizeStyle, pressed && styles.pressed]}>
-      <Text style={[styles.buttonText, textStyle]}>{label}</Text>
+      <Text style={[styles.buttonText, textStyle]} adjustsFontSizeToFit numberOfLines={1}>{label}</Text>
     </Pressable>
   );
 }
@@ -32,7 +32,7 @@ export default function StartScreen() {
     return null;
   }
 
-  async function startTest() {
+  async function startTest(version: string) {
     router.replace({ pathname: '/comparison', params: { version } });
     try {
       const response = await fetch ("http://127.0.0.1:8000/", { method: "GET" }); // fetch GET response from local
@@ -64,9 +64,9 @@ export default function StartScreen() {
         </View>
 
         <View style={styles.buttonStack}>
-            <MenuButton big label="Image Test" onPress={startTest} />
-            <MenuButton big label="Cartoon Test" onPress={startTest} />
-            <MenuButton big label="Animated Test" onPress={startTest} />
+            <MenuButton big label="Image Test" onPress={() => startTest('real')} />
+            <MenuButton big label="Animated Test" onPress={() => startTest('animated')} />
+            <MenuButton big label="Animated Text Test" onPress={() => startTest('animated_text')} />
         </View>
       </SafeAreaView>
     </View>
@@ -80,7 +80,7 @@ const styles = StyleSheet.create({
   heroSection: { flex: 1, alignSelf: 'stretch', alignItems: 'center', justifyContent: 'center' },
   title: { color: COLORS.text, fontFamily: FONT, fontSize: 104, lineHeight: 120, textAlign: 'center' },
   buttonStack: { alignSelf: 'stretch', alignItems: 'center', gap: 50, paddingBottom: 40 },
-  button: { backgroundColor: COLORS.button, borderRadius: 10, alignItems: 'center', justifyContent: 'center' },
+  button: { backgroundColor: COLORS.button, borderRadius: 10, alignItems: 'center', justifyContent: 'center', paddingHorizontal: 16 },
   pressed: { backgroundColor: COLORS.buttonPressed },
   buttonText: { color: 'white', fontFamily: FONT, textAlign: 'center' },
   small: { width: 236, height: 77 },
