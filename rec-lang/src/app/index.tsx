@@ -33,7 +33,7 @@ export default function StartScreen() {
   }
 
   async function startTest() {
-    router.replace('/comparison');
+    router.replace({ pathname: '/comparison', params: { version } });
     try {
       const response = await fetch ("http://127.0.0.1:8000/", { method: "GET" }); // fetch GET response from local
       if (!response.ok){ // error logging
@@ -64,9 +64,9 @@ export default function StartScreen() {
         </View>
 
         <View style={styles.buttonStack}>
-          <MenuButton big label="Image Test" onPress={startTest} />
-          <MenuButton big label="Cartoon Test" onPress={startTest} />
-          <MenuButton big label="Animated Test" onPress={startTest} />
+            <MenuButton big label="Image Test" onPress={startTest} />
+            <MenuButton big label="Cartoon Test" onPress={startTest} />
+            <MenuButton big label="Animated Test" onPress={startTest} />
         </View>
       </SafeAreaView>
     </View>

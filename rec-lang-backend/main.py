@@ -1,4 +1,5 @@
 import pathlib
+import random
 
 from fastapi import FastAPI
 from fastapi.staticfiles import StaticFiles
@@ -22,34 +23,85 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-
 @app.get("/")
 async def say_hello():
     print("Hello, World! I'm from FastAPI")
     return {"message" : "Hello, World!"}
 
-ROUNDS = {
-    "image": [
-        {"id": 1, "image_1": "/image/regular/cat.jpg", "image_2": "/image/regular/dog.jpg", "correct": 1},
-        {"id": 2, "image_1": "/image/regular/dog.jpg", "image_2": "/image/regular/cat.jpg", "correct": 2},
-        {"id": 3, "image_1": "/image/regular/cat.jpg", "image_2": "/image/regular/dog.jpg", "correct": 1},
-        {"id": 4, "image_1": "/image/regular/dog.jpg", "image_2": "/image/regular/cat.jpg", "correct": 2},
-        {"id": 5, "image_1": "/image/regular/cat.jpg", "image_2": "/image/regular/dog.jpg", "correct": 1},
-    ],
-    #"animated": [
-    #"cartoon": [
+VERSIONS = {"real", "animated", "animated_text"}
+ROUNDS_PER_TEST = 5
 
-}
+# cat and dog used until we have actual replacements
+TRIALS = [
+    # Real
+    {"id": 1, "version": "real", "word": "cat", "category": "noun", "prompt": "Where is the cat?",
+     "target": "/image/regular/cat.jpg", "distractor": "/image/regular/dog.jpg"},
+    {"id": 2, "version": "real", "word": "dog", "category": "noun", "prompt": "Where is the dog?",
+     "target": "/image/regular/dog.jpg", "distractor": "/image/regular/cat.jpg"},
+    {"id": 3, "version": "real", "word": "cat", "category": "noun", "prompt": "Where is the cat?",
+     "target": "/image/regular/cat.jpg", "distractor": "/image/regular/dog.jpg"},
+    {"id": 4, "version": "real", "word": "dog", "category": "noun", "prompt": "Where is the dog?",
+     "target": "/image/regular/dog.jpg", "distractor": "/image/regular/cat.jpg"},
+    {"id": 5, "version": "real", "word": "cat", "category": "noun", "prompt": "Where is the cat?",
+     "target": "/image/regular/cat.jpg", "distractor": "/image/regular/dog.jpg"},
+
+    # Animated
+    {"id": 6, "version": "animated", "word": "cat", "category": "noun", "prompt": "Where is the cat?",
+     "target": "/image/regular/cat.jpg", "distractor": "/image/regular/dog.jpg"},
+    {"id": 7, "version": "animated", "word": "dog", "category": "noun", "prompt": "Where is the dog?",
+     "target": "/image/regular/dog.jpg", "distractor": "/image/regular/cat.jpg"},
+    {"id": 8, "version": "animated", "word": "cat", "category": "noun", "prompt": "Where is the cat?",
+     "target": "/image/regular/cat.jpg", "distractor": "/image/regular/dog.jpg"},
+    {"id": 9, "version": "animated", "word": "dog", "category": "noun", "prompt": "Where is the dog?",
+     "target": "/image/regular/dog.jpg", "distractor": "/image/regular/cat.jpg"},
+    {"id": 10, "version": "animated", "word": "cat", "category": "noun", "prompt": "Where is the cat?",
+     "target": "/image/regular/cat.jpg", "distractor": "/image/regular/dog.jpg"},
+
+    # Animted + Text
+    {"id": 11, "version": "animated_text", "word": "cat", "category": "noun", "prompt": "Where is the cat?",
+     "target": "/image/regular/cat.jpg", "distractor": "/image/regular/dog.jpg"},
+    {"id": 12, "version": "animated_text", "word": "dog", "category": "noun", "prompt": "Where is the dog?",
+     "target": "/image/regular/dog.jpg", "distractor": "/image/regular/cat.jpg"},
+    {"id": 13, "version": "animated_text", "word": "cat", "category": "noun", "prompt": "Where is the cat?",
+     "target": "/image/regular/cat.jpg", "distractor": "/image/regular/dog.jpg"},
+    {"id": 14, "version": "animated_text", "word": "dog", "category": "noun", "prompt": "Where is the dog?",
+     "target": "/image/regular/dog.jpg", "distractor": "/image/regular/cat.jpg"},
+    {"id": 15, "version": "animated_text", "word": "cat", "category": "noun", "prompt": "Where is the cat?",
+     "target": "/image/regular/cat.jpg", "distractor": "/image/regular/dog.jpg"},
+]
 
 SESSIONS = []
 
 # Records selected type and result (stored in sessions)
-@app.get("/tests/{test_type}/rounds")
-def get_rounds(test_type: str):
-    if test_type not in ROUNDS:
-        return {"error": "Unknown test type"}
-    return ROUNDS[test_type]
+@app.get("/tests/{version}/rounds")
+def get_rounds(version: str):
+    if version not in VERSIONS:
+        return {"error": "Unknown version"}
 
+    pool = [trial for trial in TRIALS if trial["version"] == version]
+
+    # Pick 5 trials in a random order
+    count = min(ROUNDS_PER_TEST, len(pool))
+    chosen = random.sample(pool, count)
+
+    rounds = []
+    for trial in chosen:
+        if random.random() < 0.5:
+            left, right, correct = trial["target"], trial["distractor"], "left"
+        else:
+            left, right, correct = trial["distractor"], trial["target"], "right"
+
+        rounds.append({
+            "id": trial["id"],
+            "version": trial["version"],
+            "word": trial["word"],
+            "category": trial["category"],
+            "prompt": trial["prompt"],
+            "left": left,
+            "right": right,
+            "correct": correct,
+        })
+    return rounds
 # Records results for finish.tsx
 @app.post("/sessions")
 def save_session(result: dict):
