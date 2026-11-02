@@ -32,9 +32,9 @@ type TrialResult = {
   replays: number;
 };
 
-
 export default function ComparisonScreen() {
   const { version } = useLocalSearchParams<{ version: string }>();
+  // The below states will be used to track their variables, set(variable) will setup its input
   const [rounds, setRounds] = useState<Round[]>([]);
   const [status, setStatus] = useState<Status>('loading');
   const [trialIndex, setTrialIndex] = useState(0);
