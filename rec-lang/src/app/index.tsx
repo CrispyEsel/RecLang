@@ -33,19 +33,17 @@ export default function StartScreen() {
   }
 
   async function startTest(version: string) {
-    router.replace({ pathname: '/comparison', params: { version } });
     try {
-      const response = await fetch ("http://127.0.0.1:8000/", { method: "GET" }); // fetch GET response from local
-      if (!response.ok){ // error logging
-        console.log(response.ok)
-        throw new Error ("Could not reach backend...")
+      const response = await fetch('http://127.0.0.1:8000/', { method: 'GET' });
+      if (!response.ok) {
+        throw new Error(`Server answered ${response.status}`);
       }
-      let data = await response.json() // otherwise, get the response in a JSON format. 
-      console.log(`Hello, World! I'm from the frontend. I want to say: ${data.message}!`)
+    } catch (error) {
+      console.error(`BACKEND ERROR: ${error}`);
+      // show your error message here instead of leaving
+      return;
     }
-    catch (error){
-      console.error(`BACKEND ERROR: ${error}`)
-    }
+    router.replace({ pathname: '/comparison', params: { version } });
   }
 
 

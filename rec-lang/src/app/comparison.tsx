@@ -1,11 +1,16 @@
 import { router, Stack, useLocalSearchParams } from 'expo-router';
 import { useEffect, useRef, useState } from 'react';
-import { Image, Pressable, StyleSheet, Text, View } from 'react-native';
+import { Image, Pressable, StyleSheet, Text, useWindowDimensions, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { COLORS, FONT } from '@/constants/reclang';
 
 const API_URL = 'http://127.0.0.1:8000';
-const NO_CHOICE = 0;
+const SPEAKER_URL = `${API_URL}/image/speaker.png`;
+const PREVIEW_MS = 5000;
+const PROMPT_MS = 2000;
+const RESPONSE_MS = 5000;
+
+const PRESS_GREEN = '#34C759';
 
 type Round = {
   id: number;
@@ -34,6 +39,8 @@ type TrialResult = {
 
 export default function ComparisonScreen() {
   const { version } = useLocalSearchParams<{ version: string }>();
+  const { width, height } = useWindowDimensions(); // updates when the screen rotates or resizes
+
   // The below states will be used to track their variables, set(variable) will setup its input
   const [rounds, setRounds] = useState<Round[]>([]);
   const [status, setStatus] = useState<Status>('loading');
@@ -41,12 +48,22 @@ export default function ComparisonScreen() {
   const [phase, setPhase] = useState<Phase>('preview');
 
   const results = useRef<TrialResult[]>([]);
+  const responseStart = useRef(0);
+  const replays = useRef(0);
+  const timer = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  function clearTimer() {
+    if (timer.current !== null) {
+      clearTimeout(timer.current);
+      timer.current = null;
+    }
+  }
 
   // Get the list of rounds from the backend when the screen opens
   useEffect(() => {
     async function loadRounds() {
       try {
-      const response = await fetch(`${API_URL}/tests/${version}/rounds`, { method: 'GET' });
+        const response = await fetch(`${API_URL}/tests/${version}/rounds`, { method: 'GET' });
         if (!response.ok) {
           throw new Error('Could not load rounds');
         }
@@ -68,44 +85,128 @@ export default function ComparisonScreen() {
     loadRounds();
   }, [version]);
 
-  // EDITTED UP TO HERE, CODE BELOW WILL NOT WORK
+  // Runs each phase of a trial: preview -> prompt -> response
+  useEffect(() => {
+    if (status !== 'ready') {
+      return;
+    }
+    clearTimer();
 
-  if (rounds.length === 0) {
+    if (phase === 'preview') {
+      timer.current = setTimeout(() => setPhase('prompt'), PREVIEW_MS);
+    }
+
+    if (phase === 'prompt') {
+      // Placeholder until audio is added: wait a fixed time, then open the response window
+      console.log(`PROMPT: ${rounds[trialIndex].prompt}`);
+      timer.current = setTimeout(() => setPhase('response'), PROMPT_MS);
+    }
+
+    if (phase === 'response') {
+      responseStart.current = Date.now();
+      timer.current = setTimeout(() => finishTrial('none'), RESPONSE_MS);
+    }
+
+    return () => clearTimer();
+  }, [phase, trialIndex, status]);
+
+  function finishTrial(answer: Answer) {
+    clearTimer();
+
+    const current = rounds[trialIndex];
+    let reaction: number | null = null;
+    if (answer !== 'none') {
+      reaction = Date.now() - responseStart.current;
+    }
+
+    results.current.push({
+      trial_id: current.id,
+      word: current.word,
+      category: current.category,
+      target_side: current.correct,
+      response: answer,
+      reaction_ms: reaction,
+      replays: replays.current,
+    });
+
+    const next = trialIndex + 1;
+    if (next >= rounds.length) {
+      endTest();
+      return;
+    }
+
+    replays.current = 0;
+    setTrialIndex(next);
+    setPhase('preview');
+  }
+
+  async function endTest() {
+    const all = results.current;
+    let score = 0;
+    for (const result of all) {
+      if (result.response === 'target') {
+        score += 1;
+      }
+    }
+
+    try {
+      await fetch(`${API_URL}/sessions`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ version, results: all }),
+      });
+    } catch (error) {
+      console.error(`SAVE ERROR: ${error}`);
+    }
+
+    router.replace({
+      pathname: '/finish',
+      params: { score: String(score), total: String(all.length) },
+    });
+  }
+
+  // Touches only count after the question has been "said"
+  function handleTap(side: string) {
+    if (phase !== 'response') {
+      return;
+    }
+    let answer: Answer = 'distractor';
+    if (side === rounds[trialIndex].correct) {
+      answer = 'target';
+    }
+    finishTrial(answer);
+  }
+
+  // Replays the question (for now just reruns the prompt timer); response window restarts after
+  function handleReplay() {
+    if (phase !== 'response') {
+      return;
+    }
+    replays.current += 1;
+    setPhase('prompt');
+  }
+
+  // Wait for the rounds before drawing anything that uses them
+  if (status !== 'ready') {
     return (
       <View style={[styles.container, styles.center]}>
         <Stack.Screen options={{ headerShown: false }} />
-        <Text style={styles.roundText}>Loading...</Text>
+        <Text style={styles.message}>{status}</Text>
       </View>
     );
   }
 
-  const totalRounds = rounds.length;
-  const current = rounds[round];
-  const imageUrl1 = `${API_URL}${current.left}`;
-  const imageUrl2 = `${API_URL}${current.right}`;
+  const current = rounds[trialIndex];
+  const locked = phase !== 'response';
+  const showText = version === 'animated_text';
 
-  function handleNext() {
-    if (choice === NO_CHOICE) {
-      return;
-    }
-
-    let newScore = score;
-    if (choice === current.correct) {
-      newScore = score + 1;
-    }
-
-    const nextRound = round + 1;
-    if (nextRound >= totalRounds) {
-      router.replace({
-        pathname: '/finish',
-        params: { score: String(newScore), total: String(totalRounds) },
-      });
-      return;
-    }
-
-    setScore(newScore);
-    setRound(nextRound);
-    setChoice(NO_CHOICE);
+  // Side by side when the screen is wider than tall, stacked otherwise
+  const isLandscape = width > height;
+  let layoutStyle = styles.imageColumn;
+  let boxSizeStyle = styles.boxStacked;
+  if (isLandscape) {
+    layoutStyle = styles.imageRow;
+    boxSizeStyle = styles.boxSideBySide;
   }
 
   return (
@@ -113,43 +214,47 @@ export default function ComparisonScreen() {
       <Stack.Screen options={{ headerShown: false }} />
       <SafeAreaView style={styles.safeArea}>
         <View style={styles.topBar}>
-          <Text style={styles.roundText}>
-            {round + 1}/{totalRounds}
-          </Text>
-          <Pressable
-            onPress={handleNext}
-            disabled={choice === NO_CHOICE}
-            style={({ pressed }) => [
-              styles.button,
-              styles.next,
-              pressed && styles.pressed,
-              choice === NO_CHOICE && styles.disabled,
-            ]}>
-            <Text style={[styles.buttonText, styles.nextText]}>Next</Text>
-          </Pressable>
+          <View style={styles.topLeft}>
+            <Pressable
+              onPress={handleReplay}
+              disabled={locked}
+              accessibilityLabel="Play the question again"
+              style={({ pressed }) => [styles.speaker, pressed && styles.speakerPressed, locked && styles.disabled]}>
+              <Image
+                source={{ uri: SPEAKER_URL }}
+                style={styles.speakerImage}
+                resizeMode="contain"
+                onError={() => console.log(`Speaker image failed: ${SPEAKER_URL}`)}
+              />
+            </Pressable>
+          </View>
+
+          <View style={styles.topCenter}>
+            {showText && <Text style={styles.topText}>Find: {current.word}</Text>}
+          </View>
+
+          <View style={styles.topRight}>
+            <Text style={styles.topText}>
+              {trialIndex + 1}/{rounds.length}
+            </Text>
+          </View>
         </View>
 
-        <View style={styles.imageStack}>
+        <View style={styles.phaseBar}>
+          {phase === 'preview' && <Text style={styles.phaseText}>Preview</Text>}
+        </View>
+
+        <View style={layoutStyle}>
           <Pressable
-            onPress={() => setChoice(1)}
-            style={({ pressed }) => [styles.imageBox, pressed && styles.imagePressed, choice === 1 && styles.selected]}>
-            <Image
-              source={{ uri: imageUrl1 }}
-              style={styles.image}
-              resizeMode="cover"
-              onError={() => console.log(`Image failed: ${imageUrl1}`)}
-            />
+            onPress={() => handleTap('left')}
+            style={({ pressed }) => [styles.imageBox, boxSizeStyle, pressed && !locked && styles.boxPressed]}>
+            <Image key={`left-${trialIndex}`} source={{ uri: `${API_URL}${current.left}` }} style={styles.image} resizeMode="cover" />
           </Pressable>
 
           <Pressable
-            onPress={() => setChoice(2)}
-            style={({ pressed }) => [styles.imageBox, pressed && styles.imagePressed, choice === 2 && styles.selected]}>
-            <Image
-              source={{ uri: imageUrl2 }}
-              style={styles.image}
-              resizeMode="cover"
-              onError={() => console.log(`Image failed: ${imageUrl2}`)}
-            />
+            onPress={() => handleTap('right')}
+            style={({ pressed }) => [styles.imageBox, boxSizeStyle, pressed && !locked && styles.boxPressed]}>
+            <Image key={`right-${trialIndex}`} source={{ uri: `${API_URL}${current.right}` }} style={styles.image} resizeMode="cover" />
           </Pressable>
         </View>
       </SafeAreaView>
@@ -160,27 +265,47 @@ export default function ComparisonScreen() {
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: COLORS.background },
   center: { alignItems: 'center', justifyContent: 'center' },
-  safeArea: { flex: 1, paddingHorizontal: 24, alignItems: 'center' },
-  topBar: { alignSelf: 'stretch', flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', paddingTop: 16 },
-  roundText: { color: COLORS.text, fontFamily: FONT, fontSize: 32, lineHeight: 40 },
-  imageStack: { flex: 1, alignSelf: 'stretch', alignItems: 'center', justifyContent: 'center', gap: 60 },
-  button: { backgroundColor: COLORS.button, borderRadius: 10, alignItems: 'center', justifyContent: 'center' },
-  pressed: { backgroundColor: COLORS.buttonPressed },
-  disabled: { opacity: 0.4 },
-  buttonText: { color: COLORS.text, fontFamily: FONT, textAlign: 'center' },
-  next: { width: 207, height: 58 },
-  nextText: { fontSize: 32, lineHeight: 40 },
+  safeArea: { flex: 1, paddingHorizontal: 24 },
+
+  // Top bar: speaker on the left, "Find:" centered, trial counter on the right
+  topBar: { flexDirection: 'row', alignItems: 'center', paddingTop: 16 },
+  topLeft: { flex: 1, alignItems: 'flex-start' },
+  topCenter: { alignItems: 'center' },
+  topRight: { flex: 1, alignItems: 'flex-end' },
+  topText: { color: COLORS.text, fontFamily: FONT, fontSize: 48, lineHeight: 58 },
+
+  speaker: {
+    width: 96,
+    height: 96,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  speakerPressed: { transform: [{ scale: 0.9 }] },
+  speakerImage: { width: 72, height: 72 },
+
+  // "Preview" label; the bar keeps its height so the pictures don't jump when the label disappears
+  phaseBar: { height: 56, alignItems: 'center', justifyContent: 'center' },
+  phaseText: { color: COLORS.text, fontFamily: FONT, fontSize: 40, lineHeight: 50 },
+
+  // Landscape: side by side
+  imageRow: { flex: 1, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 40 },
+  boxSideBySide: { flex: 1, maxWidth: 480 },
+
+  // Portrait: stacked
+  imageColumn: { flex: 1, flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: 32 },
+  boxStacked: { width: '100%', maxWidth: 480 },
+
   imageBox: {
-    width: 443,
-    maxWidth: '100%',
-    height: 294,
+    aspectRatio: 4 / 3,
     borderRadius: 15,
     overflow: 'hidden',
     backgroundColor: COLORS.button,
-    borderWidth: 4,
-    borderColor: 'transparent',
+    borderWidth: 6,
+    borderColor: 'transparent', // always has a border so the picture doesn't shift when it turns green
   },
-  imagePressed: { opacity: 0.8 },
-  selected: { borderColor: COLORS.text },
+  boxPressed: { borderColor: PRESS_GREEN },
   image: { width: '100%', height: '100%' },
+
+  disabled: { opacity: 0.4 },
+  message: { color: COLORS.text, fontFamily: FONT, fontSize: 32, lineHeight: 40, textAlign: 'center' },
 });
